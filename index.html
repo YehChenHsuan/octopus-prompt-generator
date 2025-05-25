@@ -75,46 +75,46 @@
             display: block;
         }
 
-        .slider-container {
+        .number-input-container {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
             margin-top: 10px;
         }
 
-        .slider {
+        .number-input {
             flex: 1;
-            height: 8px;
-            border-radius: 5px;
-            background: #ddd;
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+            min-width: 0;
+        }
+
+        .number-input:focus {
+            border-color: #ff6b6b;
             outline: none;
-            -webkit-appearance: none;
+            box-shadow: 0 0 10px rgba(255,107,107,0.2);
         }
 
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #ff6b6b;
-            cursor: pointer;
+        .number-input:invalid {
+            border-color: #dc3545;
+            box-shadow: 0 0 10px rgba(220,53,69,0.2);
         }
 
-        .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #ff6b6b;
-            cursor: pointer;
-            border: none;
-        }
-
-        .slider-value {
-            font-size: 1.2em;
+        .input-unit {
+            font-size: 1.1em;
             font-weight: bold;
             color: #ff6b6b;
-            min-width: 60px;
+            min-width: 30px;
+        }
+
+        .input-hint {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
             text-align: center;
         }
 
@@ -352,13 +352,12 @@
             
             <!-- 上課次數設定 -->
             <div class="control-group">
-                <label class="control-label">📅 上課次數設定</label>
-                <div class="slider-container">
-                    <span>4次</span>
-                    <input type="range" id="courseCount" class="slider" min="4" max="20" value="10">
-                    <span>20次</span>
-                    <div class="slider-value" id="courseCountValue">10次</div>
+                <label class="control-label" for="courseCount">📅 上課次數設定</label>
+                <div class="number-input-container">
+                    <input type="number" id="courseCount" class="number-input" min="1" value="10" placeholder="請輸入上課次數">
+                    <span class="input-unit">次</span>
                 </div>
+                <div class="input-hint">請輸入正整數</div>
             </div>
             
             <!-- 提示詞類型 -->
@@ -571,14 +570,15 @@
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
-            updateSliderValue();
             updateWordCountVisibility();
             setupEventListeners();
         });
 
         function setupEventListeners() {
-            // 滑桿事件
-            document.getElementById('courseCount').addEventListener('input', updateSliderValue);
+            // 數字輸入事件
+            const courseCountInput = document.getElementById('courseCount');
+            courseCountInput.addEventListener('input', validateCourseCount);
+            courseCountInput.addEventListener('blur', validateCourseCount);
             
             // 提示詞類型切換
             document.getElementById('promptType').addEventListener('change', toggleCustomPrompt);
@@ -590,11 +590,17 @@
             });
         }
 
-        function updateSliderValue() {
-            const slider = document.getElementById('courseCount');
-            const valueDisplay = document.getElementById('courseCountValue');
-            valueDisplay.textContent = slider.value + '次';
+        function validateCourseCount() {
+            const input = document.getElementById('courseCount');
+            const value = parseInt(input.value);
+            
+            // 只檢查是否為正整數
+            if (isNaN(value) || value < 1) {
+                input.value = 1;
+            }
         }
+
+
 
         function toggleCustomPrompt() {
             const promptType = document.getElementById('promptType').value;
@@ -618,7 +624,16 @@
         }
 
         function generatePrompt() {
-            const courseCount = document.getElementById('courseCount').value;
+            const courseCountInput = document.getElementById('courseCount');
+            const courseCount = parseInt(courseCountInput.value);
+            
+            // 驗證課程次數
+            if (isNaN(courseCount) || courseCount < 1) {
+                alert('請輸入有效的上課次數（正整數）！');
+                courseCountInput.focus();
+                return;
+            }
+            
             const promptType = document.getElementById('promptType').value;
             const customPrompt = document.getElementById('customPrompt').value;
             
