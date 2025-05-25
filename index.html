@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台灣資訊教育發展協會 章魚AI創意玩程式A冊 課表提示詞生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .settings-section {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .control-label {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ff6b6b;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:focus {
+            border-color: #ff6b6b;
+            outline: none;
+            box-shadow: 0 0 10px rgba(255,107,107,0.2);
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1em;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .custom-input:focus {
+            border-color: #ff6b6b;
+            outline: none;
+            box-shadow: 0 0 10px rgba(255,107,107,0.2);
+        }
+
+        .checkboxes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            background: #e9ecef;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .word-count-controls {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff3e0;
+            border-radius: 10px;
+            border-left: 4px solid #ffa726;
+        }
+
+        .word-count-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .word-count-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .word-count-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .word-count-input {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .generate-button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255,107,107,0.3);
+            margin-top: 20px;
+        }
+
+        .generate-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255,107,107,0.4);
+        }
+
+        .output-section {
+            padding: 30px;
+            background: white;
+        }
+
+        .output-area {
+            width: 100%;
+            min-height: 400px;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            background: #f8f9fa;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .copy-button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .copy-button:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .copy-success {
+            background: #20c997 !important;
+        }
+
+        .llm-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .llm-link {
+            padding: 8px 15px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .llm-link:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.6em;
+            }
+            
+            .checkboxes-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .word-count-item {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .llm-links {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐙 章魚AI創意玩程式A冊</h1>
+            <p>台灣資訊教育發展協會 課表提示詞生成器</p>
+        </div>
+        
+        <!-- 設定區域 -->
+        <div class="settings-section">
+            <h2 class="section-title">⚙️ 基本設定</h2>
+            
+            <!-- 上課次數設定 -->
+            <div class="control-group">
+                <label class="control-label">📅 上課次數設定</label>
+                <div class="slider-container">
+                    <span>4次</span>
+                    <input type="range" id="courseCount" class="slider" min="4" max="20" value="10">
+                    <span>20次</span>
+                    <div class="slider-value" id="courseCountValue">10次</div>
+                </div>
+            </div>
+            
+            <!-- 提示詞類型 -->
+            <div class="control-group">
+                <label class="control-label" for="promptType">📝 提示詞類型</label>
+                <select id="promptType">
+                    <option value="fixed">固定模板</option>
+                    <option value="custom">自訂內容</option>
+                </select>
+                <textarea id="customPrompt" class="custom-input hidden" placeholder="請輸入您的自訂提示詞內容..."></textarea>
+            </div>
+            
+            <!-- 生成內容選項 -->
+            <div class="control-group">
+                <label class="control-label">✅ 生成內容選項</label>
+                <div class="checkboxes-grid">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="includeCourseIntro" checked>
+                        <label for="includeCourseIntro">課程介紹</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="includeCourseCount" checked>
+                        <label for="includeCourseCount">課程次數</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="includeCourseName" checked>
+                        <label for="includeCourseName">課程名稱</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="includeCourseContent" checked>
+                        <label for="includeCourseContent">課程內容</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="includeNotices" checked>
+                        <label for="includeNotices">注意事項</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="includePresentation" checked>
+                        <label for="includePresentation">成果發表</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 字數設定 -->
+            <div id="wordCountControls" class="word-count-controls">
+                <h3 style="margin-bottom: 15px; color: #333;">📊 字數設定</h3>
+                <div id="introWordCount" class="word-count-item">
+                    <span class="word-count-label">課程介紹字數</span>
+                    <input type="number" id="introWords" class="word-count-input" min="50" max="300" value="150">
+                </div>
+                <div id="contentWordCount" class="word-count-item">
+                    <span class="word-count-label">課程內容字數</span>
+                    <input type="number" id="contentWords" class="word-count-input" min="20" max="50" value="30">
+                </div>
+                <div id="noticesWordCount" class="word-count-item">
+                    <span class="word-count-label">注意事項字數</span>
+                    <input type="number" id="noticesWords" class="word-count-input" min="20" max="50" value="30">
+                </div>
+            </div>
+            
+            <button class="generate-button" onclick="generatePrompt()">🚀 生成提示詞</button>
+        </div>
+        
+        <!-- 輸出區域 -->
+        <div class="output-section">
+            <h2 class="section-title">📄 提示詞輸出</h2>
+            <textarea id="outputArea" class="output-area" placeholder="點擊「生成提示詞」按鈕來產生您的提示詞..." readonly></textarea>
+            
+            <div class="action-buttons">
+                <button id="copyButton" class="copy-button" onclick="copyToClipboard()">📋 複製提示詞</button>
+                <div class="llm-links">
+                    <a href="https://claude.ai" target="_blank" class="llm-link">Claude.ai</a>
+                    <a href="https://chatgpt.com" target="_blank" class="llm-link">ChatGPT</a>
+                    <a href="https://gemini.google.com" target="_blank" class="llm-link">Google Gemini</a>
+                    <a href="https://www.perplexity.ai" target="_blank" class="llm-link">Perplexity</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 課程資料
+        const courseIntro = `《章魚AI創意玩程式A冊》是一門專為兒童設計的程式設計入門課程，透過OctoStudio平台，讓孩子在遊戲與創作中學習程式邏輯。
+課程內容涵蓋介面操作、角色添加、事件觸發、條件判斷、變數應用等，逐步引導孩子掌握程式設計的核心概念。每堂課結合實作練習與創意挑戰，讓孩子在動手操作中培養解決問題的能力。
+課程主題包括「小小探險家」、「章魚AI說故事」、「彩色任意門」等，讓孩子在有趣的情境中學習程式設計。此外，課程還融入SDGs永續發展目標，鼓勵孩子關注全球議題，培養社會責任感。
+在課程的最後一堂，孩子們將展示自己的專題作品，分享學習成果，增強自信心與表達能力。這不僅是一場學習之旅，更是孩子們展現創意與成長的舞台。
+透過《章魚AI創意玩程式A冊》，孩子們將在快樂中學習，為未來的數位世界打下堅實的基礎。`;
+
+        const courseData = [
+            {
+                unit: 1,
+                title: "開啟程式世界",
+                hours: 2,
+                content: [
+                    "章魚AI程式介紹",
+                    "角色添加",
+                    "座標位置及角色簡單指令"
+                ],
+                projects: ["角色創建與匯入", "\"我\"的程式專案"],
+                concepts: "介面操作、角色添加及座標位置、積木指令"
+            },
+            {
+                unit: 2,
+                title: "小小探險家",
+                hours: 2,
+                content: [
+                    "動作積木的運用",
+                    "混合不同事件積木和動作積木",
+                    "指令順序與執行流程"
+                ],
+                projects: ["小章魚探險", "海底尋寶"],
+                concepts: "事件觸發、基本動作指令"
+            },
+            {
+                unit: 3,
+                title: "章魚AI說故事",
+                hours: 3,
+                content: [
+                    "熟悉文字與聲音指令",
+                    "規劃繪本故事的分鏡",
+                    "錄製角色對話"
+                ],
+                projects: ["神秘海底王國", "我會說故事", "海龜樂園"],
+                concepts: "音效觸發、錄音功能、文字對話(英文，簡單)"
+            },
+            {
+                unit: 4,
+                title: "彩色任意門",
+                hours: 3,
+                content: [
+                    "介紹場景、顏色指令",
+                    "角色的顏色變化",
+                    "角色在不同場景間的互動"
+                ],
+                projects: ["彩色變身術", "穿梭任意門"],
+                concepts: "場景指令、顏色指令、背景切換"
+            },
+            {
+                unit: 5,
+                title: "小精靈的遊戲世界",
+                hours: 2,
+                content: [
+                    "迴圈與重複的差異",
+                    "角色不停旋轉",
+                    "角色接收不同訊息做出多樣反映"
+                ],
+                projects: ["小精靈吃豆子", "彩色幽靈出來了"],
+                concepts: "迴圈結構、重複執行指令"
+            },
+            {
+                unit: 6,
+                title: "反應大挑戰",
+                hours: 2,
+                content: [
+                    "True and False概念",
+                    "角色碰到物體時改變行動",
+                    "條件判斷的應用場景"
+                ],
+                projects: ["尋找外星人", "打地鼠", "智勇大挑戰"],
+                concepts: "條件判斷、互動設計"
+            },
+            {
+                unit: 7,
+                title: "倒數計時挑戰",
+                hours: 2,
+                content: [
+                    "計時器機制應用"
+                ],
+                projects: ["氣球大作戰", "炸彈陷阱賽"],
+                concepts: "時間計算, 延遲、計時器應用"
+            },
+            {
+                unit: 8,
+                title: "守護星際生態",
+                hours: 2,
+                content: [
+                    "角色隨機出現",
+                    "變數概念與計分系統",
+                    "亂數與隨機性應用"
+                ],
+                projects: ["宇宙漩渦危機", "宇宙危機再挑戰", "生態多樣模擬器"],
+                concepts: "亂數、變數概念、計分系統"
+            },
+            {
+                unit: 9,
+                title: "超級坦克大戰",
+                hours: 3,
+                content: [
+                    "角色間訊息傳遞機制",
+                    "多角色協作設計",
+                    "基本感測器應用（點擊、搖晃、傾斜）"
+                ],
+                projects: ["猜猜我是誰", "坦克世界", "坦克大亂鬥"],
+                concepts: "多角色互動、訊息傳遞、感測器應用"
+            },
+            {
+                unit: 10,
+                title: "專題設計：SDGs星球守護者",
+                hours: 4,
+                content: [
+                    "專題規劃與設計",
+                    "程式優化與除錯",
+                    "成果展示技巧",
+                    "海SDGs議題融入"
+                ],
+                projects: ["SDGs14：海洋永續", "SDGs永續主題發想設計"],
+                concepts: "綜合運用前面所學概念，專題製作"
+            }
+        ];
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSliderValue();
+            updateWordCountVisibility();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // 滑桿事件
+            document.getElementById('courseCount').addEventListener('input', updateSliderValue);
+            
+            // 提示詞類型切換
+            document.getElementById('promptType').addEventListener('change', toggleCustomPrompt);
+            
+            // 勾選框事件
+            const checkboxes = ['includeCourseIntro', 'includeCourseContent', 'includeNotices'];
+            checkboxes.forEach(id => {
+                document.getElementById(id).addEventListener('change', updateWordCountVisibility);
+            });
+        }
+
+        function updateSliderValue() {
+            const slider = document.getElementById('courseCount');
+            const valueDisplay = document.getElementById('courseCountValue');
+            valueDisplay.textContent = slider.value + '次';
+        }
+
+        function toggleCustomPrompt() {
+            const promptType = document.getElementById('promptType').value;
+            const customPrompt = document.getElementById('customPrompt');
+            
+            if (promptType === 'custom') {
+                customPrompt.classList.remove('hidden');
+            } else {
+                customPrompt.classList.add('hidden');
+            }
+        }
+
+        function updateWordCountVisibility() {
+            const introCheck = document.getElementById('includeCourseIntro').checked;
+            const contentCheck = document.getElementById('includeCourseContent').checked;
+            const noticesCheck = document.getElementById('includeNotices').checked;
+            
+            document.getElementById('introWordCount').style.display = introCheck ? 'flex' : 'none';
+            document.getElementById('contentWordCount').style.display = contentCheck ? 'flex' : 'none';
+            document.getElementById('noticesWordCount').style.display = noticesCheck ? 'flex' : 'none';
+        }
+
+        function generatePrompt() {
+            const courseCount = document.getElementById('courseCount').value;
+            const promptType = document.getElementById('promptType').value;
+            const customPrompt = document.getElementById('customPrompt').value;
+            
+            // 取得勾選項目
+            const settings = {
+                includeCourseIntro: document.getElementById('includeCourseIntro').checked,
+                includeCourseCount: document.getElementById('includeCourseCount').checked,
+                includeCourseName: document.getElementById('includeCourseName').checked,
+                includeCourseContent: document.getElementById('includeCourseContent').checked,
+                includeNotices: document.getElementById('includeNotices').checked,
+                includePresentation: document.getElementById('includePresentation').checked
+            };
+            
+            // 取得字數設定
+            const wordCounts = {
+                intro: document.getElementById('introWords').value,
+                content: document.getElementById('contentWords').value,
+                notices: document.getElementById('noticesWords').value
+            };
+            
+            let prompt = '';
+            
+            if (promptType === 'custom' && customPrompt.trim()) {
+                prompt = customPrompt + '\n\n';
+            }
+            
+            // 基本要求
+            prompt += `請使用繁體中文，為「章魚AI創意玩程式A冊」設計一個${courseCount}次課程的教學計畫。\n\n`;
+            
+            // 課程次數要求
+            if (settings.includeCourseCount) {
+                prompt += `## 課程安排要求\n總共安排${courseCount}次課程，請根據以下10個單元的內容和時數，合理分配每次課程的內容。\n\n`;
+            }
+            
+            // 10個單元詳細資料
+            prompt += `## 課程單元資料\n以下是完整的10個課程單元：\n\n`;
+            
+            courseData.forEach(unit => {
+                prompt += `**單元${unit.unit}：${unit.title}**（${unit.hours}小時）\n`;
+                prompt += `- 學習概念：${unit.concepts}\n`;
+                prompt += `- 學習內容：${unit.content.join('、')}\n`;
+                prompt += `- 專案任務：${unit.projects.join('、')}\n\n`;
+            });
+            
+            // 課程介紹參考資料
+            if (settings.includeCourseIntro) {
+                prompt += `## 課程介紹參考資料\n以下是課程介紹的參考內容：\n${courseIntro}\n\n`;
+            }
+            
+            // 輸出格式要求
+            prompt += `## 輸出格式要求\n`;
+            prompt += `請按照以下順序輸出：\n\n`;
+            
+            // 1. 課程介紹輸出要求
+            if (settings.includeCourseIntro) {
+                prompt += `### 1. 課程介紹\n`;
+                prompt += `請根據上述參考資料，重新撰寫一份課程介紹，字數控制在${wordCounts.intro}字以內。\n`;
+                prompt += `內容要包含課程特色、學習目標、教學方式等，語言要生動有趣，適合向家長和學生介紹。\n\n`;
+            }
+            
+            // 2. 課程表格輸出要求
+            let tableOrder = settings.includeCourseIntro ? 2 : 1;
+            prompt += `### ${tableOrder}. 課程計畫表格\n`;
+            prompt += `請以表格形式呈現${courseCount}次課程的詳細安排，包含以下欄位：\n`;
+            
+            if (settings.includeCourseCount) {
+                prompt += `- 課程次數（第1次、第2次...）\n`;
+            }
+            if (settings.includeCourseName) {
+                prompt += `- 課程名稱\n`;
+            }
+            if (settings.includeCourseContent) {
+                prompt += `- 課程內容（每次課程內容請控制在${wordCounts.content}字以內）\n`;
+            }
+            if (settings.includeNotices) {
+                prompt += `- 注意事項（每項請控制在${wordCounts.notices}字以內）\n`;
+            }
+            if (settings.includePresentation) {
+                prompt += `- 成果發表（最後一次課程要特別標註）\n`;
+            }
+            
+            prompt += `\n## 重要提醒\n`;
+            let reminderCount = 1;
+            
+            prompt += `${reminderCount}. 請務必嚴格遵守字數限制\n`;
+            reminderCount++;
+            
+            if (settings.includeCourseIntro) {
+                prompt += `${reminderCount}. 課程介紹要重新撰寫，不要直接複製參考資料\n`;
+                reminderCount++;
+                prompt += `${reminderCount}. 課程介紹字數：${wordCounts.intro}字以內\n`;
+                reminderCount++;
+            }
+            if (settings.includeCourseContent) {
+                prompt += `${reminderCount}. 每次課程內容字數：${wordCounts.content}字以內\n`;
+                reminderCount++;
+            }
+            if (settings.includeNotices) {
+                prompt += `${reminderCount}. 每項注意事項字數：${wordCounts.notices}字以內\n`;
+                reminderCount++;
+            }
+            
+            prompt += `${reminderCount}. 課程安排要循序漸進，符合兒童學習特性\n`;
+            reminderCount++;
+            prompt += `${reminderCount}. 每次課程都要有明確的學習目標和實作練習\n`;
+            reminderCount++;
+            
+            if (settings.includePresentation) {
+                prompt += `${reminderCount}. 最後一次課程要安排成果發表和回顧\n`;
+                reminderCount++;
+            }
+            
+            prompt += `${reminderCount}. 所有內容請使用繁體中文\n\n`;
+            
+            prompt += `請開始生成完整的教學計畫內容。`;
+            
+            document.getElementById('outputArea').value = prompt;
+        }
+
+        function copyToClipboard() {
+            const outputArea = document.getElementById('outputArea');
+            const copyButton = document.getElementById('copyButton');
+            
+            if (!outputArea.value.trim()) {
+                alert('請先生成提示詞！');
+                return;
+            }
+            
+            outputArea.select();
+            outputArea.setSelectionRange(0, 99999); // For mobile devices
+            
+            try {
+                document.execCommand('copy');
+                
+                // 視覺回饋
+                const originalText = copyButton.textContent;
+                copyButton.textContent = '✅ 複製成功！';
+                copyButton.classList.add('copy-success');
+                
+                setTimeout(() => {
+                    copyButton.textContent = originalText;
+                    copyButton.classList.remove('copy-success');
+                }, 2000);
+                
+            } catch (err) {
+                alert('複製失敗，請手動複製');
+            }
+        }
+    </script>
+</body>
+</html>
